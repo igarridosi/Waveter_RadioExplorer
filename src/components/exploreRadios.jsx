@@ -14,7 +14,7 @@ function ExploreRadios() {
 
     useEffect(() => {
         // Fetch countries and cities
-        axios.get('/netlify/functions/api/places')
+        axios.get('/.netlify/functions/api/places')
         .then(response => {
         if (response.status === 200) {
             const data = response.data;
@@ -66,7 +66,7 @@ function ExploreRadios() {
         document.getElementById("radiosLabel").style.display = 'inline';
         document.getElementById("radiosList").style.display = 'inline';
         const selectedCityId = event.target.value;
-        axios.get(`/netlify/functions/api/radios/${selectedCityId}`)
+        axios.get(`/.netlify/functions/api/radios/${selectedCityId}`)
         .then(response => {
             if (response.status === 200) {
             const data = response.data;
@@ -95,7 +95,7 @@ function ExploreRadios() {
         }
 
         const selectedRadioId = event.target.value;
-        const radioUrl = `/netlify/functions/api/radio/${selectedRadioId}`;
+        const radioUrl = `/.netlify/functions/api/radio/${selectedRadioId}`;
         setCurrentRadioUrl(radioUrl);
         setError(''); // Clear previous errors
     }
@@ -103,7 +103,7 @@ function ExploreRadios() {
     function handleAudioError() {
         setError('Failed to load the radio stream. Please try another station.');
         // Remove the radio that caused the error from the list
-        setRadios(prevRadios => prevRadios.filter(radio => `http://localhost:3000/api/radio/${radio.id}` !== currentRadioUrl));
+        setRadios(prevRadios => prevRadios.filter(radio => `/.netlify/functions/api/radio/${radio.id}` !== currentRadioUrl));
         setCurrentRadioUrl(''); // Clear the current radio URL
     }
 
