@@ -8,7 +8,6 @@ const router = express.Router();
 
 app.use(cors());
 
-// Modificar las rutas para usar el router
 router.get('/places', async (req, res) => {
   try {
     const response = await axios.get('https://radio.garden/api/ara/content/places');
@@ -31,22 +30,15 @@ router.get('/radios/:cityId', async (req, res) => {
 router.get('/radio/:radioId', async (req, res) => {
   const { radioId } = req.params;
   try {
-    const response = await axios.get(`https://radio.garden/api/ara/content/listen/${radioId}/channel.mp3`, {
-      responseType: 'stream',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
-    
-    // Configurar headers CORS específicos para audio
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Content-Type', 'audio/mpeg');
-    response.data.pipe(res);
+    // En lugar de transmitir el audio, obtenemos la URL directa
+    const response = await axios.get(`https://radio.garden/api/ara/content/listen/${radioId}/channel.mp3`);
+    // Devolvemos la URL directa al cliente
+    res.json({ streamUrl: `https://radio.garden/api/ara/content/listen/${radioId}/channel.mp3` });
   } catch (error) {
     res.status(500).json({ error: 'Error fetching radio stream' });
   }
 });
 
-app.use('/.netlify/functions/api', router);
+app.use('/', router);
 
 module.exports.handler = serverless(app);

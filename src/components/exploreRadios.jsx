@@ -14,7 +14,7 @@ function ExploreRadios() {
 
     useEffect(() => {
         // Fetch countries and cities
-        axios.get('/.netlify/functions/api/places')
+        axios.get('/api/places')
         .then(response => {
         if (response.status === 200) {
             const data = response.data;
@@ -68,7 +68,7 @@ function ExploreRadios() {
         const selectedCityId = event.target.value;
         
         // Agregar manejo de errores más detallado
-        axios.get(`/.netlify/functions/api/radios/${selectedCityId}`)
+        axios.get(`/api/radios/${selectedCityId}`)
             .then(response => {
                 if (response.status === 200 && response.data) {
                     const data = response.data;
@@ -99,10 +99,20 @@ function ExploreRadios() {
         }
 
         const selectedRadioId = event.target.value;
-        // Construir la URL completa
-        const radioUrl = `/.netlify/functions/api/radio/${selectedRadioId}`;
-        setCurrentRadioUrl(radioUrl);
-        setError('');
+        // Obtener la URL del stream
+        axios.get(`/api/radio/${selectedRadioId}`)
+            .then(response => {
+                if (response.data && response.data.streamUrl) {
+                    setCurrentRadioUrl(response.data.streamUrl);
+                    setError('');
+                } else {
+                    setError('Error loading radio stream');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching radio stream:', error);
+                setError('Error loading radio stream');
+            });
     }
 
     function handleAudioError() {
