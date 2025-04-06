@@ -14,7 +14,7 @@ function ExploreRadios() {
 
     useEffect(() => {
         // Fetch countries and cities
-        axios.get('/api/places')
+        axios.get('/.netlify/functions/api/places')
         .then(response => {
         if (response.status === 200) {
             const data = response.data;
@@ -68,7 +68,7 @@ function ExploreRadios() {
         const selectedCityId = event.target.value;
         
         // Agregar manejo de errores más detallado
-        axios.get(`/api/radios/${selectedCityId}`)
+        axios.get(`/.netlify/functions/api/radios/${selectedCityId}`)
             .then(response => {
                 if (response.status === 200 && response.data) {
                     const data = response.data;
@@ -99,27 +99,19 @@ function ExploreRadios() {
         }
 
         const selectedRadioId = event.target.value;
-        // Obtener la URL del stream
-        axios.get(`/api/radio/${selectedRadioId}`)
-            .then(response => {
-                if (response.data && response.data.streamUrl) {
-                    setCurrentRadioUrl(response.data.streamUrl);
-                    setError('');
-                } else {
-                    setError('Error loading radio stream');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching radio stream:', error);
-                setError('Error loading radio stream');
-            });
+        // Usar directamente la URL de radio.garden en lugar de pasar por nuestra API
+        const streamUrl = `https://radio.garden/api/ara/content/listen/${selectedRadioId}/channel.mp3`;
+        setCurrentRadioUrl(streamUrl);
+        setError('');
     }
 
     function handleAudioError() {
         setError('Failed to load the radio stream. Please try another station.');
-        // Remove the radio that caused the error from the list
-        setRadios(prevRadios => prevRadios.filter(radio => `http://localhost:3000/api/radio/${radio.id}` !== currentRadioUrl));
-        setCurrentRadioUrl(''); // Clear the current radio URL
+        // Actualizar la URL para que coincida con la nueva estructura
+        setRadios(prevRadios => prevRadios.filter(radio => 
+            `https://radio.garden/api/ara/content/listen/${radio.id}/channel.mp3` !== currentRadioUrl
+        ));
+        setCurrentRadioUrl('');
     }
 
     function handleAudioCanPlay() {
