@@ -66,52 +66,45 @@ function ExploreRadios() {
         document.getElementById("radiosLabel").style.display = 'inline';
         document.getElementById("radiosList").style.display = 'inline';
         const selectedCityId = event.target.value;
-        
-        // Agregar manejo de errores más detallado
         axios.get(`/.netlify/functions/api/radios/${selectedCityId}`)
-            .then(response => {
-                if (response.status === 200 && response.data) {
-                    const data = response.data;
-                    const radios = data.data.content.flatMap(item => 
-                        item.items.map(radio => {
-                            const url = radio.page.url;
-                            const id = url.split('/').pop();
-                            return { ...radio.page, id };
-                        })
-                    );
-                    const halfRadios = radios.slice(0, Math.ceil(radios.length / 2));
-                    setRadios(halfRadios);
-                } else {
-                    console.error('Invalid response format:', response);
-                    setError('Error loading radio stations');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching radio stations:', error);
-                setError('Error loading radio stations');
-            });
+        .then(response => {
+            if (response.status === 200) {
+            const data = response.data;
+            const radios = data.data.content.flatMap(item => 
+                item.items.map(radio => {
+                const url = radio.page.url;
+                const id = url.split('/').pop(); // Extract the ID from the URL
+                return { ...radio.page, id }; // Return the radio object with the extracted ID
+                })
+            );
+            const halfRadios = radios.slice(0, Math.ceil(radios.length / 2)); // Take the first half of the radios
+            setRadios(halfRadios);
+            console.log(halfRadios);
+            } else {
+            console.error(`Failed to retrieve data: ${response.status}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
     }
 
     function handleRadioChange(event) {
         if (radioCount >= 5) {
-            setLimitReached(true);
-            return;
+        setLimitReached(true);
         }
 
         const selectedRadioId = event.target.value;
-        // Usar directamente la URL de radio.garden en lugar de pasar por nuestra API
-        const streamUrl = `https://radio.garden/api/ara/content/listen/${selectedRadioId}/channel.mp3`;
-        setCurrentRadioUrl(streamUrl);
-        setError('');
+        const radioUrl = `/.netlify/functions/api/radio/${selectedRadioId}`;
+        setCurrentRadioUrl(radioUrl);
+        setError(''); // Clear previous errors
     }
 
     function handleAudioError() {
         setError('Failed to load the radio stream. Please try another station.');
-        // Actualizar la URL para que coincida con la nueva estructura
-        setRadios(prevRadios => prevRadios.filter(radio => 
-            `https://radio.garden/api/ara/content/listen/${radio.id}/channel.mp3` !== currentRadioUrl
-        ));
-        setCurrentRadioUrl('');
+        // Remove the radio that caused the error from the list
+        setRadios(prevRadios => prevRadios.filter(radio => `http://localhost:3000/api/radio/${radio.id}` !== currentRadioUrl));
+        setCurrentRadioUrl(''); // Clear the current radio URL
     }
 
     function handleAudioCanPlay() {
@@ -153,19 +146,11 @@ function ExploreRadios() {
             </div>
             {currentRadioUrl && (
                 <div className="mt-4 p-4 bg-white rounded-lg shadow-md dark:bg-gray-300">
-                    <audio 
-                        key={currentRadioUrl} 
-                        controls 
-                        autoPlay 
-                        crossOrigin="anonymous"
-                        onError={handleAudioError} 
-                        onCanPlay={handleAudioCanPlay} 
-                        className="w-full bg-[#4977da] rounded custom-audio"
-                    >
-                        <source src={currentRadioUrl} type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
+                <audio key={currentRadioUrl} controls autoPlay onError={handleAudioError} onCanPlay={handleAudioCanPlay} className="w-full bg-[#4977da] rounded custom-audio">
+                <source src={currentRadioUrl} type="audio/mpeg" />
+                Your browser does not support the audio element.
+                </audio>
+            </div>
             )}
             {error && <p style={{ color: 'red', fontSize:'1rem', fontWeight:'bold' }}>{error}</p>}
             {limitReached && (
