@@ -90,14 +90,11 @@ function ExploreRadios() {
     }
 
     function handleRadioChange(event) {
-        if (radioCount >= 5) {
-        setLimitReached(true);
-        }
-
         const selectedRadioId = event.target.value;
-        const radioUrl = `/.netlify/functions/api/radio/${selectedRadioId}`;
+        // Usar directamente la URL de radio.garden
+        const radioUrl = `https://radio.garden/api/ara/content/listen/${selectedRadioId}/channel.mp3`;
         setCurrentRadioUrl(radioUrl);
-        setError(''); // Clear previous errors
+        setError('');
     }
 
     function handleAudioError() {

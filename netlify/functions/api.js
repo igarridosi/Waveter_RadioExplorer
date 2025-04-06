@@ -30,11 +30,8 @@ app.get('/.netlify/functions/api/radios/:cityId', async (req, res) => {
 app.get('/.netlify/functions/api/radio/:radioId', async (req, res) => {
   const { radioId } = req.params;
   try {
-    const response = await axios.get(`https://radio.garden/api/ara/content/listen/${radioId}/channel.mp3`, {
-      responseType: 'stream'
-    });
-    res.setHeader('Content-Type', 'audio/mpeg');
-    response.data.pipe(res);
+    // En lugar de stream, redirigir al cliente directamente a radio.garden
+    res.redirect(`https://radio.garden/api/ara/content/listen/${radioId}/channel.mp3`);
   } catch (error) {
     res.status(500).send('Error fetching radio stream');
   }
