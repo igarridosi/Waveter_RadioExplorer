@@ -1,12 +1,26 @@
-# Node Server Execution
+# 📻 Waveter - Global Radio Explorer
 
-Before executing Waveter main page, start the node server by executing: > node src/server.js
+## 🌟 Description
+Waveter is a modern web application that allows you to explore and listen to radio stations from around the world. Using the Radio Garden API, you can discover new cultures and music through a clean and user-friendly interface.
 
-# React + Vite
+## ✨ Features
+- 🌍 Browse by countries and cities
+- 🎵 Live radio stream playback
+- 🚀 Built with React and deployed on Netlify
+- ⚡ Intuitive and responsive interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🔧 Technologies Used
+- React
+- Vite
+- Netlify Functions
+- Radio Garden API
+- Axios
 
-Currently, two official plugins are available:
+## 🚀 Demo
+Try the live application here: [Waveter](https://waveter.netlify.app)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎧 Special Recommendation
+Don't miss out on **A.D.M. Hardstyle Radio** from Assen, The Netherlands! An excellent station offering the best hardstyle beats. Give it a try and let yourself be carried away by its energy!
+
+---
+*Made with ❤️ for radio lovers worldwide*
