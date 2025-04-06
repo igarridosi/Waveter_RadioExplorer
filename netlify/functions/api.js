@@ -1,16 +1,13 @@
-import express from 'express';
-import axios from 'axios';
-import cors from 'cors';
+const express = require('express');
+const serverless = require('serverless-http');
+const axios = require('axios');
+const cors = require('cors');
 
 const app = express();
-const port = 3000;
 
-// Use CORS middleware
-app.use(cors({
-  origin: 'http://localhost:5173', // Replace with your React app's URL
-}));
+app.use(cors());
 
-app.get('/api/places', async (req, res) => {
+app.get('/.netlify/functions/api/places', async (req, res) => {
   try {
     const response = await axios.get('https://radio.garden/api/ara/content/places');
     res.json(response.data);
@@ -19,8 +16,7 @@ app.get('/api/places', async (req, res) => {
   }
 });
 
-// New route to handle radios API
-app.get('/api/radios/:cityId', async (req, res) => {
+app.get('/.netlify/functions/api/radios/:cityId', async (req, res) => {
   const { cityId } = req.params;
   try {
     const response = await axios.get(`https://radio.garden/api/ara/content/page/${cityId}`);
@@ -30,8 +26,7 @@ app.get('/api/radios/:cityId', async (req, res) => {
   }
 });
 
-// New route to handle radio stream URL
-app.get('/api/radio/:radioId', async (req, res) => {
+app.get('/.netlify/functions/api/radio/:radioId', async (req, res) => {
   const { radioId } = req.params;
   try {
     const response = await axios.get(`https://radio.garden/api/ara/content/listen/${radioId}/channel.mp3`, {
@@ -44,6 +39,4 @@ app.get('/api/radio/:radioId', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+module.exports.handler = serverless(app);
