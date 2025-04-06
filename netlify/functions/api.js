@@ -5,7 +5,8 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://waveter.netlify.app/',}));
 
 app.get('/.netlify/functions/api/places', async (req, res) => {
   try {

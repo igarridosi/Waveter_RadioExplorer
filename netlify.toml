@@ -4,9 +4,14 @@
   functions = "netlify/functions"
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 [build.environment]
   NODE_VERSION = "18"
+
+[functions]
+  # Increase the function timeout if needed
+  node_bundler = "esbuild"
+  external_node_modules = ["axios"]
