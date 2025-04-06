@@ -1,5 +1,5 @@
 import React from 'react';
-import marconi from '../../public/marconi.jpg'
+import marconi from '/public/marconi.jpg'
 
 const Index = ({ children }) => {
     return (
