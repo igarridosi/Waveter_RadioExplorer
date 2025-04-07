@@ -18,7 +18,7 @@ function ExploreRadios() {
     useEffect(() => {
         // Fetch countries and cities
         {/*Test Path Change /.netlify/functions -> http://localhost:3000*/}
-        axios.get('/.netlify/functions/api/places')
+        axios.get('http://localhost:3000/api/places')
         .then(response => {
         if (response.status === 200) {
             const data = response.data;
@@ -79,12 +79,12 @@ function ExploreRadios() {
         document.getElementById("radiosList").style.display = 'inline';
         const selectedCityId = event.target.value;
         const selectedCity = allCities.find(city => city.id === selectedCityId);
-        {/*Test Path Change /.netlify/functions -> http://localhost:3000*/}
-        axios.get(`/.netlify/functions/api/radios/${selectedCityId}`)
+        
+        axios.get(`http://localhost:3000/api/radios/${selectedCityId}`)
         .then(response => {
             if (response.status === 200) {
                 const data = response.data;
-                const radios = data.data.content.flatMap(item => 
+                const allCityRadios = data.data.content.flatMap(item => 
                     item.items.map(radio => {
                         const url = radio.page.url;
                         const id = url.split('/').pop();
@@ -93,15 +93,21 @@ function ExploreRadios() {
                             id,
                             country: selectedCity.country,
                             cityId: selectedCityId,
-                            cityName: selectedCity.title  // Añadimos el nombre de la ciudad
+                            cityName: selectedCity.title
                         };
                     })
                 );
-                // Mantener las radios guardadas en la lista
+
+                // Filtrar solo la mitad de las emisoras
+                const halfLength = Math.ceil(allCityRadios.length / 2);
+                const halfRadios = allCityRadios.slice(0, halfLength);
+
+                // Mantener las radios guardadas junto con la mitad filtrada
                 const savedRadiosForCity = savedRadios.filter(radio => radio.cityId === selectedCityId);
-                const uniqueRadios = [...radios, ...savedRadiosForCity].filter((radio, index, self) =>
+                const uniqueRadios = [...halfRadios, ...savedRadiosForCity].filter((radio, index, self) =>
                     index === self.findIndex((r) => r.id === radio.id)
                 );
+                
                 setRadios(uniqueRadios);
             }
         })
@@ -177,7 +183,7 @@ function ExploreRadios() {
         try {
             // 3. Obtener radios de la ciudad
             {/*Test Path Change /.netlify/functions -> http://localhost:3000*/}
-            const response = await axios.get(`/.netlify/functions/api/radios/${randomCity.id}`);
+            const response = await axios.get(`http://localhost:3000/api/radios/${randomCity.id}`);
             if (response.status === 200) {
                 const radios = response.data.data.content.flatMap(item => 
                     item.items.map(radio => {
@@ -317,9 +323,11 @@ function ExploreRadios() {
     }
 
     function handleAudioCanPlay() {
+        // Limpiar el mensaje de error cuando la radio se reproduce correctamente
+        setError('');
         setRadioCount(prevCount => prevCount + 1);
         if (radioCount + 1 >= 5) {
-        setLimitReached(true);
+            setLimitReached(true);
         }
     }
 
@@ -347,8 +355,6 @@ function ExploreRadios() {
                         🎲 Random
                     </button>
                 </div>
-
-                {/* Selector de País */}
                 <div className="p-2 rounded-lg shadow-lg w-full md:w-[40rem] lg:w-[50rem]">
                     <label htmlFor="countries" className="block text-lg md:text-xl font-semibold text-white">
                         Choose a Country

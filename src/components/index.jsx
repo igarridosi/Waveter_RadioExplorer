@@ -9,7 +9,10 @@ const Index = ({ children }) => {
             backgroundImage: `url(${marconi})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundAttachment: 'fixed'
+            backgroundAttachment: 'fixed',
+            '@media (max-width: 640px)': {
+                backgroundAttachment: 'scroll'
+            }
         }}
     >
     <div
