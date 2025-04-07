@@ -18,7 +18,7 @@ function ExploreRadios() {
     useEffect(() => {
         // Fetch countries and cities
         {/*Test Path Change /.netlify/functions -> http://localhost:3000*/}
-        axios.get('http://localhost:3000/api/places')
+        axios.get('/.netlify/functions/api/places')
         .then(response => {
         if (response.status === 200) {
             const data = response.data;
@@ -80,7 +80,7 @@ function ExploreRadios() {
         const selectedCityId = event.target.value;
         const selectedCity = allCities.find(city => city.id === selectedCityId);
         
-        axios.get(`http://localhost:3000/api/radios/${selectedCityId}`)
+        axios.get(`/.netlify/functions/api/radios/${selectedCityId}`)
         .then(response => {
             if (response.status === 200) {
                 const data = response.data;
@@ -183,7 +183,7 @@ function ExploreRadios() {
         try {
             // 3. Obtener radios de la ciudad
             {/*Test Path Change /.netlify/functions -> http://localhost:3000*/}
-            const response = await axios.get(`http://localhost:3000/api/radios/${randomCity.id}`);
+            const response = await axios.get(`/.netlify/functions/api/radios/${randomCity.id}`);
             if (response.status === 200) {
                 const radios = response.data.data.content.flatMap(item => 
                     item.items.map(radio => {
