@@ -1,0 +1,52 @@
+[
+ {
+  "name": "Argentina",
+  "iso_3166_1": "AR",
+  "stationcount": 1138
+ },
+ {
+  "name": "Brazil",
+  "iso_3166_1": "BR",
+  "stationcount": 1450
+ },
+ {
+  "name": "Spain",
+  "iso_3166_1": "ES",
+  "stationcount": 1347
+ },
+ {
+  "name": "France",
+  "iso_3166_1": "FR",
+  "stationcount": 2798
+ },
+ {
+  "name": "India",
+  "iso_3166_1": "IN",
+  "stationcount": 1001
+ },
+ {
+  "name": "Iceland",
+  "iso_3166_1": "IS",
+  "stationcount": 29
+ },
+ {
+  "name": "Japan",
+  "iso_3166_1": "JP",
+  "stationcount": 128
+ },
+ {
+  "name": "Kenya",
+  "iso_3166_1": "KE",
+  "stationcount": 74
+ },
+ {
+  "name": "Mexico",
+  "iso_3166_1": "MX",
+  "stationcount": 2680
+ },
+ {
+  "name": "The United States Of America",
+  "iso_3166_1": "US",
+  "stationcount": 7239
+ }
+]

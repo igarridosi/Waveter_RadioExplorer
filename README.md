@@ -1,20 +1,31 @@
 # 📻 Waveter - Global Radio Explorer
 
 ## 🌟 Description
-Waveter is a modern web application that allows you to explore and listen to radio stations from around the world. Using the Radio Garden API, you can discover new cultures and music through a clean and user-friendly interface.
+Waveter is a modern web application that allows you to explore and listen to radio stations from around the world. Using the open [Radio Browser](https://www.radio-browser.info) catalogue, you can discover new cultures and music through a clean and user-friendly interface.
 
 ## ✨ Features
-- 🌍 Browse by countries and cities
-- 🎵 Live radio stream playback
-- 🚀 Built with React and deployed on Netlify
+- 🌍 Search any country, filter by region, spin the random dial
+- 🎵 Persistent player bar with live status, volume and saved radios
+- 🚀 Built with React, no backend: a static site on Netlify
 - ⚡ Intuitive and responsive interface
 
 ## 🔧 Technologies Used
 - React
 - Vite
-- Netlify Functions
-- Radio Garden API
-- Axios
+- Tailwind CSS
+- Radio Browser API
+- Vitest
+
+## 🛠️ Development
+```bash
+npm install
+npm run dev          # Vite dev server
+npm test             # unit + contract tests against recorded fixtures
+npm run test:live    # also runs the catalogue contract against the real API
+```
+Append `?fixture` to the dev URL (or set `VITE_CATALOGUE=fixture`) to run the UI on recorded data, without network.
+
+See `CONTEXT.md` for the domain vocabulary and `docs/adr/` for architecture decisions.
 
 ## 🚀 Demo
 Try the live application here: [Waveter](https://waveter.netlify.app)

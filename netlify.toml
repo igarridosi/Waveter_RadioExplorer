@@ -1,22 +1,8 @@
+# Waveter is a static site: the station catalogue (Radio Browser) is queried
+# directly from the browser, so there are no functions or API redirects.
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
 
 [build.environment]
-  NODE_VERSION = "18"
-
-[functions]
-  # Increase the function timeout if needed
-  node_bundler = "esbuild"
-  external_node_modules = ["axios"]
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
+  NODE_VERSION = "20"
