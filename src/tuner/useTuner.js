@@ -5,7 +5,7 @@ import { reducer, initialState, actions } from './reducer.js';
 // this hook only turns state changes into catalogue calls and calls into actions.
 export function useTuner(catalogue) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { country, region, requestId } = state;
+  const { country, region, query, requestId } = state;
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +20,7 @@ export function useTuner(catalogue) {
     let cancelled = false;
     Promise.all([
       region ? null : catalogue.regionsIn(country),
-      catalogue.stationsIn(country, region ? { region } : {}),
+      catalogue.stationsIn(country, { ...(region ? { region } : {}), ...(query ? { query } : {}) }),
     ])
       .then(([regions, stations]) => {
         if (!cancelled) dispatch(actions.stationsLoaded(requestId, stations, regions ?? undefined));
@@ -29,10 +29,11 @@ export function useTuner(catalogue) {
         if (!cancelled) dispatch(actions.stationsFailed(requestId, describe(error)));
       });
     return () => { cancelled = true; };
-  }, [catalogue, country, region, requestId]);
+  }, [catalogue, country, region, query, requestId]);
 
   const selectCountry = useCallback(code => dispatch(actions.selectCountry(code)), []);
   const selectRegion = useCallback(name => dispatch(actions.selectRegion(name)), []);
+  const search = useCallback(query => dispatch(actions.search(query)), []);
   const tune = useCallback(station => dispatch(actions.tune(station)), []);
   const retry = useCallback(() => dispatch(actions.retry()), []);
 
@@ -42,7 +43,7 @@ export function useTuner(catalogue) {
     return station;
   }, [catalogue]);
 
-  return { ...state, selectCountry, selectRegion, tune, tuneRandom, retry };
+  return { ...state, selectCountry, selectRegion, search, tune, tuneRandom, retry };
 }
 
 function describe(error) {

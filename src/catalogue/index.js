@@ -2,7 +2,7 @@
 //
 //   countries()                          -> Country[]
 //   regionsIn(countryCode)               -> Region[]   (may be empty: half the stations carry no region)
-//   stationsIn(countryCode, { region })  -> Station[]  (playable over HTTPS, not broken, most voted first)
+//   stationsIn(countryCode, { region, query }) -> Station[]  (playable, not broken, most voted first)
 //   randomStation()                      -> Station
 //   streamFor(station)                   -> string     (stream URL to play; reports the play to the provider)
 //
@@ -19,6 +19,9 @@ const useFixture =
   import.meta.env.VITE_CATALOGUE === 'fixture' ||
   (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('fixture'));
 
-export const catalogue = useFixture ? createFixtureCatalogue() : createRadioBrowserCatalogue();
+// /stream/:id relays http:// streams (Netlify edge function in production, Vite middleware in dev).
+export const catalogue = useFixture
+  ? createFixtureCatalogue()
+  : createRadioBrowserCatalogue({ httpProxy: station => `/stream/${station.id}` });
 
 export { CatalogueError };

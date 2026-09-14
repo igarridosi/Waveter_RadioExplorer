@@ -2,10 +2,11 @@ import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import SearchCombobox from './SearchCombobox.jsx';
 import StationList from './StationList.jsx';
+import StationSearch from './StationSearch.jsx';
 
 // The console: country, optional region, stations.
 export default function Tuner({ tuner, onTune }) {
-  const { countries, countriesStatus, country, region, regions, stations, stationsStatus, error, station } = tuner;
+  const { countries, countriesStatus, country, region, query, regions, stations, stationsStatus, error, station } = tuner;
 
   const countryItems = useMemo(() => countries.map(c => ({ value: c.code, label: c.name, count: c.stationCount })), [countries]);
   const regionItems = useMemo(() => regions.map(r => ({ value: r.name, label: r.name, count: r.stationCount })), [regions]);
@@ -48,7 +49,13 @@ export default function Tuner({ tuner, onTune }) {
         </div>
       )}
 
-      <div className="mt-4 md:mt-5">
+      {country && (
+        <div className="mt-4 md:mt-5">
+          <StationSearch value={query} onSearch={tuner.search} />
+        </div>
+      )}
+
+      <div className="mt-3 md:mt-4">
         <StationList
           stations={stations}
           status={stationsStatus}
@@ -56,6 +63,7 @@ export default function Tuner({ tuner, onTune }) {
           tunedId={station?.id}
           hasCountry={Boolean(country)}
           hideRegion={Boolean(region)}
+          query={query}
           onTune={onTune}
           onRetry={tuner.retry}
         />

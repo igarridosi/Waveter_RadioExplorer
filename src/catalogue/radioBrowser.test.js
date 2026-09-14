@@ -145,6 +145,39 @@ describe('radioBrowser adapter', () => {
     expect(new URL(fetch.mock.calls[0][0]).searchParams.get('order')).toBe('random');
   });
 
+  describe('with an http relay configured', () => {
+    const relay = station => `/stream/${station.id}`;
+
+    it('keeps http stations and stops asking the API for https only', async () => {
+      const fetch = vi.fn(() => ok(stationsES));
+      const catalogue = createRadioBrowserCatalogue({ fetch, hosts: ['a.example'], httpProxy: relay });
+
+      const stations = await catalogue.stationsIn('ES');
+      expect(new URL(fetch.mock.calls[0][0]).searchParams.has('is_https')).toBe(false);
+      expect(stations.some(s => s.stream.startsWith('http://'))).toBe(true);
+      expect(stations.every(s => /^https?:\/\//.test(s.stream) && !s.hls)).toBe(true);
+    });
+
+    it('streamFor hands http streams to the relay and leaves https ones alone', async () => {
+      const fetch = vi.fn(() => ok({ ok: true, url: 'http://fresh/stream' }));
+      const catalogue = createRadioBrowserCatalogue({ fetch, hosts: ['a.example'], httpProxy: relay });
+      expect(await catalogue.streamFor({ id: 'u1', stream: 'http://known/stream' })).toBe('/stream/u1');
+
+      const secure = createRadioBrowserCatalogue({ fetch: vi.fn(() => ok({ ok: true, url: 'https://fresh/stream' })), hosts: ['a.example'], httpProxy: relay });
+      expect(await secure.streamFor({ id: 'u1', stream: 'http://known/stream' })).toBe('https://fresh/stream');
+    });
+  });
+
+  it('searches by name and by tag inside the current country and region', async () => {
+    const fetch = vi.fn(() => ok([]));
+    const catalogue = createRadioBrowserCatalogue({ fetch, hosts: ['a.example'] });
+
+    await catalogue.stationsIn('ES', { query: ' jazz ' });
+    const params = fetch.mock.calls.map(([url]) => new URL(url).searchParams);
+    expect(params.map(p => [p.get('name'), p.get('tag')])).toEqual([['jazz', null], [null, 'jazz']]);
+    expect(params.every(p => p.get('countrycode') === 'ES')).toBe(true);
+  });
+
   it('streamFor reports the play and falls back to the known stream when that fails', async () => {
     const station = { id: 'u1', stream: 'https://known/stream' };
 

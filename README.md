@@ -4,9 +4,9 @@
 Waveter is a modern web application that allows you to explore and listen to radio stations from around the world. Using the open [Radio Browser](https://www.radio-browser.info) catalogue, you can discover new cultures and music through a clean and user-friendly interface.
 
 ## ✨ Features
-- 🌍 Search any country, filter by region, spin the random dial
+- 🌍 Search any country, filter by region, search stations by name or genre, spin the random dial
 - 🎵 Persistent player bar with live status, volume and saved radios
-- 🚀 Built with React, no backend: a static site on Netlify
+- 🚀 Built with React; a static site on Netlify plus one edge function that relays http:// streams
 - ⚡ Intuitive and responsive interface
 
 ## 🔧 Technologies Used

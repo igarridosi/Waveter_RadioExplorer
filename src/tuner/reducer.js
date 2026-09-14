@@ -12,6 +12,7 @@ export const initialState = {
   countriesStatus: 'loading', // 'loading' | 'ready' | 'error'
   country: '',                 // ISO code, '' when nothing is chosen
   region: '',                  // '' means "all regions"
+  query: '',                   // keyword search inside the current country and region
   regions: [],
   stations: [],
   stationsStatus: 'idle',      // 'idle' | 'loading' | 'ready' | 'error'
@@ -30,17 +31,23 @@ export function reducer(state, action) {
 
     case 'selectCountry':
       if (!action.country) {
-        return { ...state, country: '', region: '', regions: [], stations: [], stationsStatus: 'idle', error: null };
+        return { ...state, country: '', region: '', query: '', regions: [], stations: [], stationsStatus: 'idle', error: null };
       }
-      return startLoading({ ...state, country: action.country, region: '', regions: [] });
+      return startLoading({ ...state, country: action.country, region: '', query: '', regions: [] });
 
     case 'selectRegion':
       if (!state.country) return state;
       return startLoading({ ...state, region: action.region || '' });
 
+    case 'search': {
+      const query = (action.query || '').trim();
+      if (!state.country || query === state.query) return state;
+      return startLoading({ ...state, query });
+    }
+
     case 'stationsLoaded': {
       if (action.requestId !== state.requestId) return state;
-      const stations = withTunedStation(action.stations, state.station, state.country, state.region);
+      const stations = state.query ? action.stations : withTunedStation(action.stations, state.station, state.country, state.region);
       return { ...state, regions: action.regions ?? state.regions, stations, stationsStatus: 'ready', error: null };
     }
 
@@ -56,7 +63,7 @@ export function reducer(state, action) {
         return { ...next, stations: withTunedStation(state.stations, station, state.country, state.region) };
       }
       // A station from elsewhere (random dial, favourite) moves the whole selection with it.
-      return startLoading({ ...next, country: station.country, region: '', regions: [] });
+      return startLoading({ ...next, country: station.country, region: '', query: '', regions: [] });
     }
 
     case 'retry':
@@ -86,6 +93,7 @@ export const actions = {
   countriesFailed: error => ({ type: 'countriesFailed', error }),
   selectCountry: country => ({ type: 'selectCountry', country }),
   selectRegion: region => ({ type: 'selectRegion', region }),
+  search: query => ({ type: 'search', query }),
   stationsLoaded: (requestId, stations, regions) => ({ type: 'stationsLoaded', requestId, stations, regions }),
   stationsFailed: (requestId, error) => ({ type: 'stationsFailed', requestId, error }),
   tune: station => ({ type: 'tune', station }),

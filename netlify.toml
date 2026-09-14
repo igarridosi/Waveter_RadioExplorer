@@ -1,8 +1,10 @@
-# Waveter is a static site: the station catalogue (Radio Browser) is queried
-# directly from the browser, so there are no functions or API redirects.
+# Waveter is a static site plus one edge function: /stream/:id relays http:// station
+# streams (mixed content otherwise). Everything else is queried from the browser.
 [build]
   command = "npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
+
+# The edge function declares its own route (`config.path` in netlify/edge-functions/stream.js).

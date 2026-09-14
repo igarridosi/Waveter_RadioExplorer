@@ -3,7 +3,7 @@ import { SpeakerHigh, ArrowClockwise, WarningCircle } from '@phosphor-icons/reac
 import StationLogo from './StationLogo.jsx';
 
 // The stations of the current selection, with every state the tuner can be in.
-export default function StationList({ stations, status, error, tunedId, hasCountry, hideRegion = false, onTune, onRetry }) {
+export default function StationList({ stations, status, error, tunedId, hasCountry, hideRegion = false, query = '', onTune, onRetry }) {
   if (!hasCountry) {
     return (
       <Empty>
@@ -28,11 +28,14 @@ export default function StationList({ stations, status, error, tunedId, hasCount
     );
   }
   if (stations.length === 0) {
-    return <Empty>No stations stream over HTTPS here yet. Try another region.</Empty>;
+    return query
+      ? <Empty>Nothing here matches “{query}”. Try another word, or clear the search.</Empty>
+      : <Empty>No playable stations here yet. Try another region.</Empty>;
   }
 
+  // Six rows of 64px show at once; the rest scroll inside the console.
   return (
-    <ul className="scroll-thin -mx-2 px-2 md:max-h-[52vh] md:overflow-y-auto" aria-label="Stations">
+    <ul className="scroll-thin -mx-2 max-h-[24rem] overflow-y-auto overscroll-contain px-2" aria-label="Stations">
       {stations.map((station, i) => {
         const tuned = station.id === tunedId;
         return (
@@ -97,6 +100,7 @@ StationList.propTypes = {
   tunedId: PropTypes.string,
   hasCountry: PropTypes.bool.isRequired,
   hideRegion: PropTypes.bool,
+  query: PropTypes.string,
   onTune: PropTypes.func.isRequired,
   onRetry: PropTypes.func.isRequired,
 };

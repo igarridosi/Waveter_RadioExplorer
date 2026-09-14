@@ -97,6 +97,25 @@ describe('tuner reducer', () => {
     expect(stale).toBe(retried);
   });
 
+  it('searching reloads within the country and clears when the country changes', () => {
+    const s = run(actions.selectCountry('ES'), actions.stationsLoaded(1, [madrid, sevilla], []), actions.search(' jazz '));
+    expect(s).toMatchObject({ query: 'jazz', stationsStatus: 'loading', requestId: 2 });
+    expect(reducer(s, actions.search('jazz'))).toBe(s); // same query, nothing to do
+
+    const cleared = reducer(s, actions.search(''));
+    expect(cleared).toMatchObject({ query: '', stationsStatus: 'loading', requestId: 3 });
+
+    const other = reducer(s, actions.selectCountry('JP'));
+    expect(other.query).toBe('');
+    expect(run(actions.search('jazz'))).toBe(initialState); // no country yet
+  });
+
+  it('search results are not padded with the tuned station', () => {
+    const s = run(actions.selectCountry('ES'), actions.tune(sevilla), actions.search('madrid'), actions.stationsLoaded(2, [madrid]));
+    expect(s.stations).toEqual([madrid]);
+    expect(s.station).toBe(sevilla);
+  });
+
   it('records countries loading and failing', () => {
     expect(run(actions.countriesLoaded([{ code: 'ES' }]))).toMatchObject({ countriesStatus: 'ready', countries: [{ code: 'ES' }] });
     expect(run(actions.countriesFailed('offline'))).toMatchObject({ countriesStatus: 'error', error: 'offline' });

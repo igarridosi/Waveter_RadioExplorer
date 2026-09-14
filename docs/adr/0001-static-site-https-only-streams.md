@@ -1,7 +1,8 @@
 # ADR-0001: Waveter is a static site and plays HTTPS streams only
 
 Date: 2026-09-14
-Status: accepted
+Status: accepted, amended by ADR-0003 (http:// streams are now relayed through an edge function; the
+site remains static apart from that one relay)
 
 ## Context
 

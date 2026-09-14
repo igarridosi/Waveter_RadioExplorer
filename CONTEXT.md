@@ -17,8 +17,12 @@ The words the code, tests and docs use. When a concept gets a new name, change i
   physics in `src/ui/spring.js`).
 - **Station**: `{ id, name, country, countryName, region, tags, logo, stream, bitrate, codec, homepage }`.
   Its identity is `id`; the `stream` is a property that can change, so anything persisted keys on `id`.
-- **Stream**: the URL the player actually opens. Always `https://` (see ADR-0001). Resolved through
+- **Stream**: the URL the player actually opens. Either the station's own `https://` URL or, for
+  `http://` stations, the same-origin relay `/stream/:id` (ADR-0003). Resolved through
   `catalogue.streamFor(station)` when tuning, which also reports the play to the provider.
+- **Relay**: `/stream/:id`, the only server-side code in the project. Looks a station up by id and
+  pipes its http stream over HTTPS. Core in `src/streamProxy/proxy.js`; Netlify edge function in
+  production, Vite middleware in development.
 - **Tuner**: the current selection (country, region, station) and the verbs that change it: choose a
   country, choose a region, tune a station, random dial. A pure reducer in `src/tuner/reducer.js`
   (every path to a station goes through `tune`; stale loads are dropped by `requestId`) and a thin
@@ -28,7 +32,10 @@ The words the code, tests and docs use. When a concept gets a new name, change i
   (`idle | connecting | playing | error`), in `src/player/player.js`. Never a spectrum analyser (ADR-0002).
 - **Player bar**: the persistent bottom bar showing the tuned station, its status (ON AIR is the
   `playing` state, not decoration) and the controls.
-- **Console**: the panel where the listener tunes: country combobox, region chips, station list.
+- **Console**: the panel where the listener tunes: country combobox, region (All + combobox), station
+  search, station list.
+- **Station search**: a keyword the tuner sends to the catalogue (`stationsIn(country, { region, query })`),
+  matched server-side against station names (substring) and tags (exact).
 - **Favourites** ("Saved radios" in the UI): stations the listener keeps across sessions, keyed by
   station id, in `localStorage` through `src/favourites/useFavourites.js` only.
-- **Playable**: a station the catalogue will show: HTTPS stream, not broken, not HLS (ADR-0001, ADR-0002).
+- **Playable**: a station the catalogue will show: not broken, not HLS, and either HTTPS or http with the relay configured (ADR-0002, ADR-0003).

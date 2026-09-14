@@ -47,6 +47,12 @@ describe('normalizeRegions', () => {
     expect(out.map(x => x.name)).toEqual(['Madrid']);
   });
 
+  it('expands known abbreviations but drops unknown ones', () => {
+    const nl = { countryName: 'The Netherlands', countryCode: 'NL' };
+    const out = normalizeRegions([r('Noord-Holland', 20), r('NH', 4), r('XQ', 2)], nl);
+    expect(out).toEqual([{ name: 'Noord-Holland', stationCount: 24, variants: ['Noord-Holland', 'NH'] }]);
+  });
+
   it('sorts by station count, then name', () => {
     const out = normalizeRegions([r('Girona', 10), r('Madrid', 99), r('Cantabria', 10)], spain);
     expect(out.map(x => x.name)).toEqual(['Madrid', 'Cantabria', 'Girona']);

@@ -21,6 +21,8 @@ const ALIASES = {
   principadodeasturias: 'Asturias',
   castillaleon: 'Castilla y León',
   espana: null, sp: null,
+  // The Netherlands: province abbreviations
+  nh: 'Noord-Holland', zh: 'Zuid-Holland', dr: 'Drenthe', nb: 'Noord-Brabant', gld: 'Gelderland', ov: 'Overijssel', fr: 'Friesland', gr: 'Groningen', ut: 'Utrecht', ze: 'Zeeland', fl: 'Flevoland', li: 'Limburg',
   // Common elsewhere
   bavaria: 'Bayern', bayern: 'Bayern',
   lombardia: 'Lombardia', lombardy: 'Lombardia',
@@ -49,11 +51,12 @@ function resolve(raw, junk) {
   const name = clean(raw || '');
   if (!name) return null;
   const key = keyOf(name);
-  if (key.length < 3 || junk.has(key)) return null;
+  if (junk.has(key)) return null;
   if (key in ALIASES) {
     const alias = ALIASES[key];
     return alias === null ? null : { key: keyOf(alias), name: alias, aliased: true };
   }
+  if (key.length < 3) return null; // stray abbreviations we do not know
   return { key, name, aliased: false };
 }
 

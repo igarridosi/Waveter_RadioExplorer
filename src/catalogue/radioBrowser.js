@@ -23,7 +23,9 @@ export class CatalogueError extends Error {
   }
 }
 
-export function createRadioBrowserCatalogue({ fetch = globalThis.fetch?.bind(globalThis), hosts = DEFAULT_HOSTS } = {}) {
+// `httpProxy(station)` returns a same-origin URL that relays the station's http:// stream.
+// Without it, only https:// streams are playable (the site is served over HTTPS).
+export function createRadioBrowserCatalogue({ fetch = globalThis.fetch?.bind(globalThis), hosts = DEFAULT_HOSTS, httpProxy = null } = {}) {
   let countriesPromise = null;
   const countryNames = new Map();
   const regionsByCountry = new Map(); // code -> Promise<Region[]> (with raw variants)
@@ -74,17 +76,23 @@ export function createRadioBrowserCatalogue({ fetch = globalThis.fetch?.bind(glo
     return regions.map(({ name, stationCount }) => ({ name, stationCount }));
   }
 
-  async function stationsIn(countryCode, { region } = {}) {
-    const searches = { countrycode: countryCode, is_https: 'true', order: 'votes', reverse: 'true', limit: String(STATION_LIMIT) };
-    let queries = [searches];
+  const playable = station => isPlayable(station, Boolean(httpProxy));
+  const secure = httpProxy ? {} : { is_https: 'true' };
+
+  // `query` matches station names (substring) and tags (exact), both server-side.
+  async function stationsIn(countryCode, { region, query } = {}) {
+    const base = { countrycode: countryCode, ...secure, order: 'votes', reverse: 'true', limit: String(STATION_LIMIT) };
+    let scopes = [base];
     if (region) {
       // One normalised region stands for every raw spelling contributors used.
       const known = (await loadRegions(countryCode)).find(r => r.name === region);
       const variants = known ? known.variants : [region];
-      queries = variants.map(state => ({ ...searches, state, stateExact: 'true' }));
+      scopes = variants.map(state => ({ ...base, state, stateExact: 'true' }));
     }
+    const q = (query || '').trim();
+    const queries = q ? scopes.flatMap(s => [{ ...s, name: q }, { ...s, tag: q }]) : scopes;
     const lists = await Promise.all(queries.map(params => get('/json/stations/search', params)));
-    return dedupe(lists.flat().map(toStation).filter(isPlayable))
+    return dedupe(lists.flat().map(toStation).filter(playable))
       .sort((a, b) => b.votes - a.votes)
       .slice(0, STATION_LIMIT)
       .map(station => region ? { ...station, region } : station);
@@ -95,8 +103,8 @@ export function createRadioBrowserCatalogue({ fetch = globalThis.fetch?.bind(glo
     // The API caches responses per URL, so an identical query returns the same "random"
     // station for a while; a random offset makes every spin a different query.
     const offset = String(Math.floor(Math.random() * RANDOM_OFFSET_RANGE));
-    const list = await get('/json/stations/search', { is_https: 'true', order: 'random', limit: '5', offset });
-    const station = list.map(toStation).find(isPlayable);
+    const list = await get('/json/stations/search', { ...secure, order: 'random', limit: '5', offset });
+    const station = list.map(toStation).find(playable);
     if (!station) throw new CatalogueError('No playable station was returned');
     return station;
   }
@@ -104,13 +112,15 @@ export function createRadioBrowserCatalogue({ fetch = globalThis.fetch?.bind(glo
   async function streamFor(station) {
     // Radio Browser asks clients to report plays through this endpoint; it also
     // returns the freshest stream URL. Fall back to what we already know.
+    let stream = station.stream;
     try {
       const result = await get(`/json/url/${encodeURIComponent(station.id)}`);
-      if (typeof result?.url === 'string' && result.url.startsWith('https://')) return result.url;
+      if (typeof result?.url === 'string' && (result.url.startsWith('https://') || (httpProxy && result.url.startsWith('http://')))) stream = result.url;
     } catch {
       // counting the click is best-effort
     }
-    return station.stream;
+    // http:// would be blocked as mixed content: hand it to the relay instead.
+    return stream.startsWith('http://') && httpProxy ? httpProxy(station) : stream;
   }
 
   return { countries, regionsIn, stationsIn, randomStation, streamFor };
@@ -149,10 +159,11 @@ function dedupe(stations) {
   return [...byStream.values()];
 }
 
-// The site is served over HTTPS, so http:// streams would be blocked as mixed content,
-// and a plain <audio> element cannot play HLS playlists outside Safari.
-function isPlayable(station) {
-  return station.id && station.name && station.stream.startsWith('https://') && !station.hls;
+// The site is served over HTTPS, so http:// streams are blocked as mixed content unless a
+// relay is configured, and a plain <audio> element cannot play HLS playlists outside Safari.
+function isPlayable(station, viaProxy) {
+  const scheme = viaProxy ? /^https?:\/\// : /^https:\/\//;
+  return station.id && station.name && scheme.test(station.stream) && !station.hls;
 }
 
 function byName(a, b) {
