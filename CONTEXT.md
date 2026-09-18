@@ -29,7 +29,9 @@ The words the code, tests and docs use. When a concept gets a new name, change i
   hook `useTuner(catalogue)` that only performs the loads.
 - **Random dial**: tuning a station picked at random from the whole catalogue, not from the current country.
 - **Player**: one `Audio` object for the whole session and its status as data
-  (`idle | connecting | playing | error`), in `src/player/player.js`. Never a spectrum analyser (ADR-0002).
+  (`idle | connecting | playing | paused | error`, plus `reconnecting`), in `src/player/player.js`.
+  Keeps the listener's intent and reconnects a dropped live stream with backoff (ADR-0004).
+  Never a spectrum analyser (ADR-0002).
 - **Player bar**: the persistent bottom bar showing the tuned station, its status (ON AIR is the
   `playing` state, not decoration) and the controls.
 - **Console**: the panel where the listener tunes: country combobox, region (All + combobox), station

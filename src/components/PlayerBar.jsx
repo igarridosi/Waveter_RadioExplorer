@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import { Stop, SpeakerHigh, SpeakerSlash, Heart, ArrowClockwise } from '@phosphor-icons/react';
+import { Play, Stop, SpeakerHigh, SpeakerSlash, Heart, ArrowClockwise } from '@phosphor-icons/react';
 import StationLogo from './StationLogo.jsx';
 
 // Persistent bottom bar: what is playing, whether it is really playing, and the controls.
 export default function PlayerBar({ player, saved, onToggleSave }) {
-  const { station, status, error, volume, muted } = player;
+  const { station, status, error, volume, muted, reconnecting } = player;
   if (!station) return null;
 
   const place = station.region ? `${station.region}, ${station.countryName}` : station.countryName;
@@ -22,7 +22,7 @@ export default function PlayerBar({ player, saved, onToggleSave }) {
         <div className="min-w-0">
           <p className="truncate text-[15px] font-semibold text-zinc-50 md:text-base">{station.name}</p>
           <p className="truncate text-xs text-zinc-400 md:text-sm">{place}</p>
-          <Status status={status} error={error} />
+          <Status status={status} error={error} reconnecting={reconnecting} />
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -65,6 +65,15 @@ export default function PlayerBar({ player, saved, onToggleSave }) {
             >
               <ArrowClockwise size={22} weight="bold" aria-hidden="true" />
             </button>
+          ) : status === 'paused' ? (
+            <button
+              type="button"
+              onClick={player.resume}
+              aria-label="Play"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-50 text-zinc-950 transition-transform duration-100 active:scale-[0.94]"
+            >
+              <Play size={20} weight="fill" aria-hidden="true" />
+            </button>
           ) : (
             <button
               type="button"
@@ -81,7 +90,7 @@ export default function PlayerBar({ player, saved, onToggleSave }) {
   );
 }
 
-function Status({ status, error }) {
+function Status({ status, error, reconnecting }) {
   if (status === 'playing') {
     return (
       <p className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-signal">
@@ -91,7 +100,10 @@ function Status({ status, error }) {
     );
   }
   if (status === 'connecting') {
-    return <p className="mt-0.5 text-xs text-zinc-400">Connecting</p>;
+    return <p className="mt-0.5 text-xs text-zinc-400">{reconnecting ? 'Reconnecting' : 'Connecting'}</p>;
+  }
+  if (status === 'paused') {
+    return <p className="mt-0.5 text-xs text-zinc-400">Paused</p>;
   }
   if (status === 'error') {
     return <p className="mt-0.5 truncate text-xs text-signal" role="alert">{error}</p>;
@@ -99,7 +111,7 @@ function Status({ status, error }) {
   return null;
 }
 
-Status.propTypes = { status: PropTypes.string.isRequired, error: PropTypes.string };
+Status.propTypes = { status: PropTypes.string.isRequired, error: PropTypes.string, reconnecting: PropTypes.bool };
 
 PlayerBar.propTypes = {
   player: PropTypes.shape({
@@ -108,6 +120,7 @@ PlayerBar.propTypes = {
     error: PropTypes.string,
     volume: PropTypes.number.isRequired,
     muted: PropTypes.bool.isRequired,
+    reconnecting: PropTypes.bool,
     stop: PropTypes.func.isRequired,
     resume: PropTypes.func.isRequired,
     setVolume: PropTypes.func.isRequired,
