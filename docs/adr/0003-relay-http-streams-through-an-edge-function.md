@@ -29,6 +29,17 @@ Two facts made a relay viable:
   `streamFor` returns the relay URL for them. Without a relay (tests, fixture) the ADR-0001
   behaviour stands unchanged. HLS stays excluded (ADR-0002).
 
+## Amendment (2026-09-18): the relay reads eagerly
+
+Piping the origin straight to the client propagated the browser's read pauses upstream. Chrome
+suspends a media download whenever it has buffered enough, and live-stream servers drop a client
+that stops reading: measured on Minnesota Public Radio, the origin queues ~1.2 MB (~75 s at
+128 kbps) and then closes the socket (45 s of not reading survived, 120 s did not). That was the
+"station stops after a few minutes" bug. `eagerRelay` in `src/streamProxy/proxy.js` now reads the
+origin continuously and keeps a bounded queue (`MAX_BUFFERED_BYTES`, 4 MB) for the client; if the
+client stays away longer than that, old audio is dropped, never the connection. Verified: 150 s
+without reading through the relay, stream still alive.
+
 ## Consequences
 
 - Roughly 23 % more stations, including the ones listeners actually look for.

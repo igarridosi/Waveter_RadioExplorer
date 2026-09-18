@@ -18,7 +18,11 @@ function streamProxyDev() {
         res.writeHead(response.status, Object.fromEntries(response.headers));
         if (!response.body) return res.end();
         if (typeof response.body === 'string') return res.end(response.body);
-        Readable.fromWeb(response.body).on('error', () => res.end()).pipe(res);
+        const started = Date.now();
+        Readable.fromWeb(response.body)
+          .on('end', () => console.log(`[stream] origin closed ${id} after ${Math.round((Date.now() - started) / 1000)}s`))
+          .on('error', err => { console.log(`[stream] origin error ${id}: ${err.message}`); res.end(); })
+          .pipe(res);
       });
     },
   };

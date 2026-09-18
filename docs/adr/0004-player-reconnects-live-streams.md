@@ -8,7 +8,9 @@ Status: accepted
 Listeners reported stations that start, then fall silent after seconds or minutes, with a page
 reload as the only way back. Measured on "Your Classical - Relax" (Minnesota Public Radio,
 http, relayed): the upstream streamed for 75 s and the relay for 120 s without a hiccup, so the
-transport was not the culprit in the lab. It does not need to be: a live stream is a connection
+transport looked innocent at first. The actual cause turned out to be in the relay after all
+(the origin dropping a client whose reads paused; see the amendment to ADR-0003), but the
+reconnect policy below stays: it does not need a specific cause to be worth having: a live stream is a connection
 that will eventually break somewhere (an Icecast server dropping a slow reader, a network blip,
 a phone changing networks, a laptop waking up), and a browser media element never reconnects by
 itself. The player only listened to `playing`, `waiting` and `error`; a dead stream left the bar

@@ -9,6 +9,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LOOKUP_HOSTS = ['all.api.radio-browser.info', 'de1.api.radio-browser.info'];
 const USER_AGENT = 'Waveter/0.2 (+https://waveter.netlify.app)';
 
+// How much audio the relay will hold for a browser that has stopped reading
+// (Chrome suspends its download whenever it has buffered enough). 4 MB is about
+// four minutes at 128 kbps, well past the ~75 s after which Icecast-style servers
+// drop a client that is not consuming.
+export const MAX_BUFFERED_BYTES = 4 * 1024 * 1024;
+
 export async function proxyStation(id, { fetch = globalThis.fetch, hosts = LOOKUP_HOSTS, signal } = {}) {
   if (!UUID.test(id || '')) return reply(400, 'Not a station id');
 
@@ -30,7 +36,7 @@ export async function proxyStation(id, { fetch = globalThis.fetch, hosts = LOOKU
   const type = (upstream.headers.get('content-type') || 'audio/mpeg').split(';')[0].trim().toLowerCase();
   if (!isAudio(type)) return reply(502, 'The station did not send audio');
 
-  return new Response(upstream.body, {
+  return new Response(eagerRelay(upstream.body, { signal }), {
     status: 200,
     headers: {
       'Content-Type': type,
@@ -39,6 +45,43 @@ export async function proxyStation(id, { fetch = globalThis.fetch, hosts = LOOKU
       'Access-Control-Allow-Origin': '*',
     },
   });
+}
+
+// Reads the origin continuously, at its own pace, no matter how fast the client reads.
+//
+// Piping the origin straight to the client propagates the client's read pauses upstream
+// (back-pressure), and a live-stream server treats a client that stops reading as gone:
+// measured on a Minnesota Public Radio stream, ~75 s of not reading and the socket is
+// closed. So the relay itself is the steady reader, and keeps a bounded queue for the
+// browser. If the browser stays away longer than the queue allows, old audio is dropped
+// rather than the connection.
+export function eagerRelay(body, { signal, maxBuffered = MAX_BUFFERED_BYTES } = {}) {
+  const reader = body.getReader();
+  let cancelled = false;
+  return new ReadableStream({
+    start(controller) {
+      const stop = () => { cancelled = true; reader.cancel().catch(() => {}); };
+      signal?.addEventListener?.('abort', stop, { once: true });
+      (async () => {
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (cancelled) return;
+            if (done) { controller.close(); return; }
+            // desiredSize goes negative once the queue holds more than the high-water mark.
+            if (controller.desiredSize !== null && controller.desiredSize <= 0) continue; // client too far behind: drop
+            controller.enqueue(value);
+          }
+        } catch (error) {
+          if (!cancelled) { try { controller.error(error); } catch { /* already closed */ } }
+        }
+      })();
+    },
+    cancel() {
+      cancelled = true;
+      return reader.cancel().catch(() => {});
+    },
+  }, new ByteLengthQueuingStrategy({ highWaterMark: maxBuffered }));
 }
 
 async function lookup(id, { fetch, hosts, signal }) {
